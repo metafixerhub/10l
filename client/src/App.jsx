@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DbBarChart from './components/DbBarChart';
+import PushDataForm from './components/PushDataForm';
 import './index.css';
 
 function App() {
@@ -51,21 +52,25 @@ function App() {
         </div>
 
         {!loading && !error && (
-          <div className="card stats-card">
-            <h2>Cluster Status Summary</h2>
-            <div className="status-grid">
-              {dbData.map((db, idx) => (
-                <div key={idx} className={`status-item ${db.status === 'Online' ? 'online' : 'offline'}`}>
-                  <span className="status-indicator"></span>
-                  <div className="status-info">
-                    <strong>{db.clusterName}</strong>
-                    <span className="file-name">{db.file}</span>
+          <>
+            <div className="card stats-card">
+              <h2>Cluster Status Summary</h2>
+              <div className="status-grid">
+                {dbData.map((db, idx) => (
+                  <div key={idx} className={`status-item ${db.status === 'Online' ? 'online' : 'offline'}`}>
+                    <span className="status-indicator"></span>
+                    <div className="status-info">
+                      <strong>{db.clusterName}</strong>
+                      <span className="file-name">{db.file}</span>
+                    </div>
+                    <span className="storage-badge">{db.usedStoragePercent}% Used</span>
                   </div>
-                  <span className="storage-badge">{db.usedStoragePercent}% Used</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+            
+            <PushDataForm />
+          </>
         )}
       </main>
     </div>

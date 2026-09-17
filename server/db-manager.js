@@ -73,17 +73,21 @@ async function getClusterStats() {
             await client.connect();
             const db = client.db('admin');
             
-            // Try to get actual storage stats (might fail due to atlas permissions)
+            // Get actual storage stats
             let usedPercent = 0;
             try {
-                const dbStats = await db.command({ dbStats: 1 });
-                // If it succeeds, calculate some metric or just mock it since Atlas storage is across clusters
-                // We'll generate a realistic looking number based on the index to make the chart interesting
-                // or if we have real stats we can use dbStats.dataSize / (1024 * 1024 * 1024) etc.
-                usedPercent = Math.floor(Math.random() * 50) + 30; // Mocked realistic storage percentage (30-80%)
+                // client.db() without arguments uses the default database from the URI
+                const defaultDb = client.db();
+                const dbStats = await defaultDb.command({ dbStats: 1 });
+                
+                // Atlas M0 Free Tier limit is 512MB (536,870,912 bytes)
+                const maxStorageBytes = 512 * 1024 * 1024;
+                if (dbStats.dataSize) {
+                    usedPercent = parseFloat(((dbStats.dataSize / maxStorageBytes) * 100).toFixed(2));
+                }
             } catch (err) {
-                // Fallback to random if no permission
-                usedPercent = Math.floor(Math.random() * 50) + 30;
+                console.warn(`Failed to get real stats for ${file}, defaulting to 0%:`, err.message);
+                usedPercent = 0; // Default to 0% if empty or unauthorized
             }
 
             return {

@@ -9,8 +9,8 @@ function App() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch data from our Node.js backend
-    axios.get('http://localhost:5000/api/stats')
+    // Fetch data from our deployed Node.js backend on Render
+    axios.get('https://one0l-server-point-234567.onrender.com/api/stats')
       .then(response => {
         if (response.data.success) {
           setDbData(response.data.data);

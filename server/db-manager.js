@@ -80,8 +80,8 @@ async function getClusterStats() {
                 const defaultDb = client.db();
                 const dbStats = await defaultDb.command({ dbStats: 1 });
                 
-                // Atlas M0 Free Tier limit is 512MB (536,870,912 bytes)
-                const maxStorageBytes = 512 * 1024 * 1024;
+                // Atlas Free Tier limit (Updated to 513MB as requested)
+                const maxStorageBytes = 513 * 1024 * 1024;
                 if (dbStats.dataSize) {
                     usedPercent = parseFloat(((dbStats.dataSize / maxStorageBytes) * 100).toFixed(2));
                 }

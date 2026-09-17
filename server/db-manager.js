@@ -6,21 +6,55 @@ const dotenv = require('dotenv');
 // Parent directory where the .env files are located
 const parentDir = path.join(__dirname, '..');
 
-// Function to read all atlas-credentials (x).env files
-function getEnvFiles() {
-    const files = fs.readdirSync(parentDir);
-    return files.filter(file => file.startsWith('atlas-credentials') && file.endsWith('.env'));
+// Function to read connections from Environment Variables (Render) or local files (Local)
+function getConnections() {
+    const connections = [];
+
+    // 1. Check Render Environment Variables first (MONGODB_URI_1, MONGODB_URI_2, etc.)
+    for (let i = 1; i <= 10; i++) {
+        const envUri = process.env[`MONGODB_URI_${i}`];
+        if (envUri) {
+            connections.push({
+                file: `Render Env Var ${i}`,
+                uri: envUri
+            });
+        }
+    }
+
+    // If Render environment variables are found, use them!
+    if (connections.length > 0) {
+        return connections;
+    }
+
+    // 2. Fallback: Read local .env files (for local testing)
+    try {
+        const files = fs.readdirSync(parentDir);
+        const envFiles = files.filter(file => file.startsWith('atlas-credentials') && file.endsWith('.env'));
+        
+        envFiles.forEach(file => {
+            const filePath = path.join(parentDir, file);
+            const envConfig = dotenv.parse(fs.readFileSync(filePath));
+            if (envConfig.MONGODB_URI) {
+                connections.push({
+                    file: file,
+                    uri: envConfig.MONGODB_URI
+                });
+            }
+        });
+    } catch (err) {
+        console.warn("Could not read local .env files.");
+    }
+    
+    return connections;
 }
 
 async function getClusterStats() {
-    const envFiles = getEnvFiles();
+    const connections = getConnections();
     const stats = [];
 
     // To prevent long loading times, we connect to them concurrently but with a timeout
-    const promises = envFiles.map(async (file, index) => {
-        const filePath = path.join(parentDir, file);
-        const envConfig = dotenv.parse(fs.readFileSync(filePath));
-        const uri = envConfig.MONGODB_URI;
+    const promises = connections.map(async (conn, index) => {
+        const { file, uri } = conn;
 
         if (!uri) {
             return {

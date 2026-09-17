@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { getClusterStats } = require('./db-manager');
+const { getClusterStats, pushData } = require('./db-manager');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -34,6 +34,27 @@ app.get('/api/external/stats-embed', async (req, res) => {
         res.json({ success: true, data: externalData });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Failed to fetch data for external source.' });
+    }
+});
+
+// API endpoint to push data directly into a specific MongoDB cluster from an outer backend
+app.post('/api/external/push-data', async (req, res) => {
+    // Expects JSON body: { clusterIndex: 1, dbName: "myDB", collectionName: "users", payload: { ... } }
+    const { clusterIndex, dbName, collectionName, payload } = req.body;
+
+    if (!clusterIndex || !dbName || !collectionName || !payload) {
+        return res.status(400).json({ 
+            success: false, 
+            error: 'Missing required fields: clusterIndex, dbName, collectionName, payload' 
+        });
+    }
+
+    try {
+        const result = await pushData(clusterIndex, dbName, collectionName, payload);
+        res.json(result);
+    } catch (error) {
+        console.error('Error pushing data:', error);
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 

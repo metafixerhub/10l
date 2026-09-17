@@ -114,6 +114,37 @@ async function getClusterStats() {
     return results.map(r => r.status === 'fulfilled' ? r.value : { status: 'Error', error: 'Promise rejected' });
 }
 
+// Function to push data directly to a specific cluster
+async function pushData(clusterIndex, dbName, collectionName, payload) {
+    const connections = getConnections();
+    // Validate cluster index (1-based index)
+    if (clusterIndex < 1 || clusterIndex > connections.length) {
+        throw new Error(`Invalid cluster index. Must be between 1 and ${connections.length}`);
+    }
+
+    const uri = connections[clusterIndex - 1].uri;
+    const client = new MongoClient(uri, { serverSelectionTimeoutMS: 5000 });
+
+    try {
+        await client.connect();
+        const db = client.db(dbName);
+        const collection = db.collection(collectionName);
+        
+        // Insert the data (can be single object or array of objects)
+        let result;
+        if (Array.isArray(payload)) {
+            result = await collection.insertMany(payload);
+        } else {
+            result = await collection.insertOne(payload);
+        }
+        
+        return { success: true, result };
+    } finally {
+        await client.close();
+    }
+}
+
 module.exports = {
-    getClusterStats
+    getClusterStats,
+    pushData
 };

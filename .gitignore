@@ -1,0 +1,20 @@
+# Ignore node_modules
+node_modules/
+server/node_modules/
+client/node_modules/
+
+# NEVER commit environment files with database credentials!
+*.env
+atlas-credentials*.env
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Build outputs
+client/dist/
+
+# OS generated files
+.DS_Store
+Thumbs.db

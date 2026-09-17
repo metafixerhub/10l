@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DbBarChart from './components/DbBarChart';
-import PushDataForm from './components/PushDataForm';
+import ApiDocumentation from './components/ApiDocumentation';
 import './index.css';
 
 function App() {
@@ -69,7 +69,7 @@ function App() {
               </div>
             </div>
             
-            <PushDataForm />
+            <ApiDocumentation />
           </>
         )}
       </main>
